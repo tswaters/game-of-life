@@ -1,0 +1,90 @@
+{
+  "name": "life",
+  "version": "1.0.0",
+  "description": "Game of life",
+  "main": "index.js",
+  "bin": {
+    "game-of-life": "./bin/game-of-life"
+  },
+  "scripts": {
+    "debug": "node --inspect-brk ./bin/game-of-life.mjs",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "prebuild": "rimraf dist",
+    "start": "node ./bin/game-of-life.mjs",
+    "test": "mocha"
+  },
+  "author": {
+    "name": "Tyler Waters",
+    "email": "tyler.waters@gmail.com"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.12.3",
+    "@babel/eslint-parser": "^7.12.1",
+    "@babel/plugin-proposal-async-generator-functions": "^7.12.1",
+    "@babel/plugin-syntax-top-level-await": "^7.12.1",
+    "@babel/plugin-transform-runtime": "^7.12.1",
+    "@babel/preset-env": "^7.12.1",
+    "eslint": "^7.13.0",
+    "eslint-config-prettier": "^6.15.0",
+    "mocha": "^8.2.1",
+    "prettier": "^2.1.2",
+    "rimraf": "^3.0.2"
+  },
+  "dependencies": {},
+  "mocha": {
+    "spec": "**/*.test.mjs"
+  },
+  "eslintConfig": {
+    "parser": "@babel/eslint-parser",
+    "parserOptions": {
+      "ecmaVersion": 2020,
+      "sourceType": "module"
+    },
+    "env": {
+      "es6": true
+    },
+    "rules": {
+      "no-unused-vars": "warn"
+    },
+    "overrides": [
+      {
+        "files": "bin/*.mjs",
+        "env": {
+          "node": true
+        }
+      }
+    ],
+    "extends": [
+      "eslint:recommended",
+      "eslint-config-prettier"
+    ]
+  },
+  "eslintIgnore": [
+    "dist",
+    "node_modules"
+  ],
+  "prettier": {
+    "singleQuote": true,
+    "printWidth": 120,
+    "semi": false
+  },
+  "babel": {
+    "sourceMaps": "inline",
+    "retainLines": true,
+    "plugins": [
+      [
+        "@babel/plugin-transform-runtime",
+        {
+          "regenerator": true
+        }
+      ],
+      "@babel/plugin-proposal-async-generator-functions",
+      "@babel/plugin-syntax-top-level-await"
+    ],
+    "presets": [
+      "@babel/preset-env"
+    ]
+  }
+}
