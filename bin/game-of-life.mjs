@@ -1,7 +1,7 @@
 #!/usr/bin/node
 
 import readline from 'readline'
-import { init, calculate } from '../lib/life.mjs'
+import { init, calculate } from '../src/life.mjs'
 
 if (!process.stdin.isTTY) {
   console.log('not a tty')

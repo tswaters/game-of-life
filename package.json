@@ -50,6 +50,12 @@
     },
     "overrides": [
       {
+        "files": "src/*.*",
+        "env": {
+          "browser": true
+        }
+      },
+      {
         "files": "bin/*.mjs",
         "env": {
           "node": true
