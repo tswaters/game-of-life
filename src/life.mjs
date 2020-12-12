@@ -28,11 +28,11 @@
  */
 
 export const pointToIndex = (cols, rows, dx, dy) => {
-  const xmod = dx % rows
-  const ymod = dy % cols
-  const x = xmod === 0 ? 0 : (dx < 0 ? rows : 0) + xmod
-  const y = ymod === 0 ? 0 : (dy < 0 ? cols : 0) + ymod
-  return x + y * rows
+  const xmod = dx % cols
+  const ymod = dy % rows
+  const x = xmod === 0 ? 0 : (dx < 0 ? cols : 0) + xmod
+  const y = ymod === 0 ? 0 : (dy < 0 ? rows : 0) + ymod
+  return x + y * cols
 }
 
 export const indexToPoint = (cols, rows, index) => [index % cols, Math.floor(index / cols)]

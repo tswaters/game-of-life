@@ -8,7 +8,57 @@ import { init, calculate, pointToIndex, indexToPoint } from './life.mjs'
 // 15 16 17 18 19
 // 20 21 22 23 24
 
+//  0  1  2  3  4
+//  5  6  7  8  9
+// 10 11 12 13 14
+// 15 16 17 18 19
+// 20 21 22 23 24
+// 25 26 27 28 29
+// 30 31 32 33 34
+// 35 36 37 38 39
+
+//  0  1  2  3  4  5  6  7  8  9
+// 10 11 12 13 14 15 16 17 18 19
+// 20 21 22 23 24 25 26 27 28 29
+
 const tests = [
+  {
+    grid: [38, 11],
+    fn: pointToIndex,
+    spec: [[[35, 3], 149]],
+  },
+  {
+    grid: [5, 8],
+    fn: pointToIndex,
+    spec: [
+      [[-1, -1], 39],
+      [[0, -1], 35],
+      [[1, -1], 36],
+      [[-1, 0], 4],
+      [[0, 0], 0],
+      [[1, 0], 1],
+      [[-1, 1], 9],
+      [[0, 1], 5],
+      [[1, 1], 6],
+    ],
+  },
+  {
+    grid: [10, 3],
+    fn: indexToPoint,
+    spec: [
+      [[9], [9, 0]],
+      [[19], [9, 1]],
+      [[20], [0, 2]],
+    ],
+  },
+  {
+    grid: [10, 3],
+    fn: pointToIndex,
+    spec: [
+      [[0, 0], 0],
+      [[-1, -1], 29],
+    ],
+  },
   {
     grid: [5, 5],
     fn: indexToPoint,
@@ -98,8 +148,9 @@ const tests = [
 ]
 
 mocha.describe('toroidal-index', () => {
-  tests.forEach(({ grid, fn, spec }) => {
-    mocha.describe(`${fn.name} {${grid.join(',')}}`, () => {
+  tests.forEach(({ grid, fn, spec, only: describeOnly }) => {
+    const des = describeOnly ? mocha.describe.only : mocha.describe
+    des(`${fn.name} {${grid.join(',')}}`, () => {
       spec.forEach(([args, expected, only = false]) => {
         const name = `[${args.join(',')}] => ${JSON.stringify(expected)}`
         const test = only ? mocha.it.only : mocha.it
@@ -120,22 +171,49 @@ const patternTest = {
   ocilators: {
     toad: {
       rows: 6,
+      cols: 8,
+      // prettier-ignore
+      states: [
+        [
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,1,0,0,0,
+          0,0,1,0,0,1,0,0,
+          0,0,1,0,0,1,0,0,
+          0,0,0,1,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+        ],
+        [
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,0,0,1,1,1,0,0,
+          0,0,1,1,1,0,0,0,
+          0,0,0,0,0,0,0,0,
+          0,0,0,0,0,0,0,0,
+        ]
+      ],
+    },
+    toad2: {
+      rows: 8,
       cols: 6,
       // prettier-ignore
       states: [
         [
+          0,0,0,0,0,0,
           0,0,0,0,0,0,
           0,0,0,1,0,0,
           0,1,0,0,1,0,
           0,1,0,0,1,0,
           0,0,1,0,0,0,
           0,0,0,0,0,0,
+          0,0,0,0,0,0,
         ],
         [
           0,0,0,0,0,0,
           0,0,0,0,0,0,
+          0,0,0,0,0,0,
           0,0,1,1,1,0,
           0,1,1,1,0,0,
+          0,0,0,0,0,0,
           0,0,0,0,0,0,
           0,0,0,0,0,0,
         ]
