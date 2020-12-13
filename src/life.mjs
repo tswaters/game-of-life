@@ -6,24 +6,22 @@
  * => Any live cell with {2, 3} neighbours lives.
  * => Any live cell with > 3 neighbours dies.
  * => Any dead cell with three live neighbours becomes live.
- *
- * todo:
- * => if any cell wasn't modified last round, and none of it's neightbors change, it won't change this round.
+ * => If any cell wasn't modified last round, and none of it's neightbors change, it won't change this round.
  *
  * usage:
  *
- * let grid = init(cols, rows)
- *
- * grid = calculate(cols, rows, grid)
- * grid.forEach((newValue, index) => {
- *   const [x,y] = indexToPoint(index)
- *   print(x, y, newValue)
+ * const gen = life(cols, rows, () => Math.round(Math.random()))
+ * // initial value will have all cells
+ * gen.next().value.forEach(({ index, x, y, value }) => {
+ *   print(x, y, value)
  * })
  *
- * // OR
- * grid = calculate(cols, rows, grid, (x, y, newValue) => {
- *   print(x, y, newValue)
- * })
+ * setInterval(() => {
+ *   // subsequent calls have only changes
+ *   gen.next().value.forEach(({ index, x, y, value }) => {
+ *     print(x, y, value)
+ *   })
+ * }, 0)
  *
  */
 
@@ -37,26 +35,53 @@ export const pointToIndex = (cols, rows, dx, dy) => {
 
 export const indexToPoint = (cols, rows, index) => [index % cols, Math.floor(index / cols)]
 
-export const init = (cols, rows, cb = () => Math.round(Math.random())) =>
-  Array.from({ length: cols * rows }).map((_, index) => cb(index))
+export default function* (cols, rows, cb = () => Math.round(Math.random())) {
+  const cells = Array.from({ length: cols * rows }).map((_, index) => ({ index }))
+  let inspections = new Set([
+    ...cells.map((cell, index, array) => {
+      const x = (cell.x = index % cols)
+      const y = (cell.y = Math.floor(index / cols))
+      cell.value = cb(index)
+      cell.neighbours = [
+        pointToIndex(cols, rows, x - 1, y - 1),
+        pointToIndex(cols, rows, x - 1, y),
+        pointToIndex(cols, rows, x - 1, y + 1),
+        pointToIndex(cols, rows, x, y - 1),
+        pointToIndex(cols, rows, x, y + 1),
+        pointToIndex(cols, rows, x + 1, y - 1),
+        pointToIndex(cols, rows, x + 1, y),
+        pointToIndex(cols, rows, x + 1, y + 1),
+      ].map((neightbourIndex) => array[neightbourIndex])
+      return cell
+    }),
+  ])
 
-export const calculate = (cols, rows, grid, cb) =>
-  grid.map((value, index) => {
-    const [x, y] = indexToPoint(cols, rows, index)
-    const sum = [
-      grid[pointToIndex(cols, rows, x - 1, y - 1)],
-      grid[pointToIndex(cols, rows, x - 1, y)],
-      grid[pointToIndex(cols, rows, x - 1, y + 1)],
-      grid[pointToIndex(cols, rows, x, y - 1)],
-      value,
-      grid[pointToIndex(cols, rows, x, y + 1)],
-      grid[pointToIndex(cols, rows, x + 1, y - 1)],
-      grid[pointToIndex(cols, rows, x + 1, y)],
-      grid[pointToIndex(cols, rows, x + 1, y + 1)],
-    ].reduce((acc, item) => acc + item)
-    let retval = 0
-    if (sum === 3) retval = 1
-    if (sum === 4) retval = value
-    if (retval !== value) cb?.(x, y, retval)
-    return retval
-  })
+  yield inspections
+
+  while (true) {
+    const changed = new Set()
+    const newInspections = new Set()
+
+    inspections.forEach((cell) => {
+      const sum = cell.neighbours.reduce((acc, neighbour) => acc + neighbour.value, cell.value)
+      let retval = 0
+      if (sum === 3) retval = 1
+      if (sum === 4) retval = cell.value
+      if (retval !== cell.value) {
+        cell.newValue = retval
+        changed.add(cell)
+        newInspections.add(cell)
+        cell.neighbours.forEach((neighbour) => newInspections.add(neighbour))
+      }
+    })
+
+    inspections = newInspections
+
+    changed.forEach((cell) => {
+      cell.value = cell.newValue
+      delete cell.newValue
+    })
+
+    yield changed
+  }
+}

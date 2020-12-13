@@ -1,7 +1,7 @@
 #!/usr/bin/node
 
 import readline from 'readline'
-import { init, calculate } from '../src/life.mjs'
+import life from '../src/life.mjs'
 
 if (!process.stdin.isTTY) {
   console.log('not a tty')
@@ -31,15 +31,13 @@ for await (const line of rl) {
 
 const [cols, rows] = values
 
-let grid = init(cols, rows)
-
-const output = (x, y, value) => {
-  readline.cursorTo(process.stdout, x, y + 2)
-  process.stdout.write(value === 0 ? ' ' : 'X')
-}
+let gen = life(cols, rows)
 
 const repaint = () => {
-  grid = calculate(...values, grid, output)
+  gen.next().value.forEach(({ x, y, value }) => {
+    readline.cursorTo(process.stdout, x, y + 2)
+    process.stdout.write(value === 0 ? ' ' : 'X')
+  })
 }
 
 let tid

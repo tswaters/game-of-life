@@ -1,6 +1,6 @@
 import mocha from 'mocha'
 import assert from 'assert'
-import { init, calculate, pointToIndex, indexToPoint } from './life.mjs'
+import life, { pointToIndex, indexToPoint } from './life.mjs'
 
 //  0  1  2  3  4
 //  5  6  7  8  9
@@ -162,8 +162,8 @@ mocha.describe('toroidal-index', () => {
 
 mocha.describe('init', () => {
   mocha.it('initializes properly', () => {
-    const grid = init(5, 5)
-    assert.deepStrictEqual(grid.length, 25)
+    const gen = life(5, 5)
+    assert.deepStrictEqual(gen.next().value.size, 25)
   })
 })
 
@@ -248,10 +248,13 @@ mocha.describe('patterns', () => {
     mocha.describe(name, () => {
       Object.entries(specs).forEach(([spec, { states, cols, rows, only }]) => {
         const test = only ? mocha.it.only : mocha.it
+        const gen = life(cols, rows, (index) => states[0][index])
+        const grid = [...states[0]]
         test(spec, () => {
-          let grid = init(cols, rows, (index) => states[0][index])
-          for (let i = 0; i < states.length * 5; i += 1) {
-            grid = calculate(cols, rows, grid)
+          let i = 0
+          for (const changes of gen) {
+            if (++i > states.length * 5) break
+            changes.forEach((change) => (grid[change.index] = change.value))
             assert.deepStrictEqual(grid, states[(i + 1) % states.length])
           }
         })
