@@ -33,42 +33,30 @@ const [cols, rows] = values
 
 let gen = life(cols, rows)
 
-const repaint = () => {
+readline.emitKeypressEvents(process.stdin)
+
+process.stdin.setRawMode(true)
+process.stdin.on('keypress', (ch, key) => {
+  if (key && key.ctrl && key.name === 'c') {
+    process.stdout.write('\x1b[1;1H') // cursor 0,0
+    process.stdout.write('\x1b[2J') // clear screen
+    process.stdout.write('\x1b[?25h') // show cursor
+    process.stdin.unref()
+    clearTimeout(tid)
+  } else {
+    gen = life(cols, rows)
+  }
+})
+
+const tid = setInterval(() => {
   gen.next().value.forEach(({ x, y, value }) => {
     readline.cursorTo(process.stdout, x, y + 2)
     process.stdout.write(value === 0 ? ' ' : 'X')
   })
-}
-
-let tid
-
-readline.emitKeypressEvents(process.stdin)
-
-process.stdin.setRawMode(true)
-process.stdin.on('keypress', (key, data) => {
-  if ((data.ctrl && ['c', 'd'].includes(data.name)) || data.name === 'escape') {
-    clearTimeout(tid)
-    process.exit(0)
-  }
-  if (data.name === 'space') {
-    if (tid) {
-      clearInterval(tid)
-      tid = null
-    } else {
-      tid = setInterval(repaint, 16)
-    }
-  }
-  if (data.name === 'return') {
-    if (tid) {
-      clearInterval(tid)
-      tid = null
-    }
-    repaint()
-  }
 })
 
 process.stdin.resume()
-
-readline.cursorTo(process.stdout, 0, 0)
-process.stdout.write("Conway's Game of Life. [return] step [space] pause/resume [esc/ctrl-c/d] exit")
-readline.clearScreenDown(process.stdout)
+process.stdout.write('\x1b[2J') // clear screen
+process.stdout.write('\x1b[?25l') // hide cursor
+process.stdout.write('\x1b[1;1H') // cursor 0,0
+process.stdout.write("Conway's Game of Life")
