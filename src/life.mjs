@@ -57,6 +57,6 @@ export const calculate = (cols, rows, grid, cb) =>
     let retval = 0
     if (sum === 3) retval = 1
     if (sum === 4) retval = value
-    cb?.(x, y, retval)
+    if (retval !== value) cb?.(x, y, retval)
     return retval
   })
