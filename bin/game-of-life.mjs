@@ -9,7 +9,7 @@ if (!process.stdin.isTTY) {
 }
 
 let inputs = ['columns', 'rows']
-let defaults = [20, 20]
+let defaults = [process.stdout.columns, process.stdout.rows]
 let values = []
 
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout, escapeCodeTimeout: 0 })
