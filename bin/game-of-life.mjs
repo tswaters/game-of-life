@@ -51,7 +51,7 @@ process.stdin.on('keypress', (ch, key) => {
 const tid = setInterval(() => {
   gen.next().value.forEach(({ x, y, value }) => {
     readline.cursorTo(process.stdout, x, y + 2)
-    process.stdout.write(value === 0 ? ' ' : 'X')
+    process.stdout.write(value ? '\u2588' : ' ')
   })
 })
 
