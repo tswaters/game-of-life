@@ -16,9 +16,12 @@
  *   print(x, y, value)
  * })
  *
- * setInterval(() => {
- *   // subsequent calls have only changes
- *   gen.next().value.forEach(({ index, x, y, value }) => {
+ * const tid = setInterval(() => {
+ *   const {done, value} = gen.next()
+ *   if (done) clearInterval(tid)
+ *   const {changes, generation} = value
+ *   // changes is a Set, generation is an int
+ *   changes.forEach(({ index, x, y, value }) => {
  *     print(x, y, value)
  *   })
  * }, 0)
@@ -33,9 +36,21 @@ export const pointToIndex = (cols, rows, dx, dy) => {
   return x + y * cols
 }
 
+const chunkBitArray = (array) => {
+  let newArray = []
+  for (let i = 0; i < array.length; i += 64) {
+    const bin = array
+      .slice(i, i + 64)
+      .map((x) => x.value)
+      .join('')
+    newArray.push(BigInt(`0b${bin}`))
+  }
+  return newArray
+}
+
 export const indexToPoint = (cols, rows, index) => [index % cols, Math.floor(index / cols)]
 
-export default function* (cols, rows, cb = () => Math.round(Math.random())) {
+export default function* (cols, rows, cb = () => Math.round(Math.random()), historyToKeep = 6) {
   const cells = Array.from({ length: cols * rows }).map((_, index) => ({ index }))
   let inspections = new Set([
     ...cells.map((cell, index, array) => {
@@ -56,10 +71,14 @@ export default function* (cols, rows, cb = () => Math.round(Math.random())) {
     }),
   ])
 
-  yield inspections
+  let generation = 0
+  const history = [chunkBitArray(cells)]
+
+  yield { changes: inspections, generation }
 
   while (true) {
-    const changed = new Set()
+    generation++
+    const changes = new Set()
     const newInspections = new Set()
 
     inspections.forEach((cell) => {
@@ -69,7 +88,7 @@ export default function* (cols, rows, cb = () => Math.round(Math.random())) {
       if (sum === 4) retval = cell.value
       if (retval !== cell.value) {
         cell.newValue = retval
-        changed.add(cell)
+        changes.add(cell)
         newInspections.add(cell)
         cell.neighbours.forEach((neighbour) => newInspections.add(neighbour))
       }
@@ -77,11 +96,22 @@ export default function* (cols, rows, cb = () => Math.round(Math.random())) {
 
     inspections = newInspections
 
-    changed.forEach((cell) => {
+    changes.forEach((cell) => {
       cell.value = cell.newValue
       delete cell.newValue
     })
 
-    yield changed
+    const newHistory = chunkBitArray(cells)
+
+    if (history.some((h) => h.every((x, i) => newHistory[i] === x))) {
+      break // we're done here.
+    }
+
+    history.unshift(newHistory)
+    if (history.length > historyToKeep) {
+      history.pop()
+    }
+
+    yield { generation, changes }
   }
 }

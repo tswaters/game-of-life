@@ -9,7 +9,7 @@ if (!process.stdin.isTTY) {
 }
 
 let inputs = ['columns', 'rows']
-let defaults = [process.stdout.columns, process.stdout.rows]
+let defaults = [process.stdout.columns, process.stdout.rows - 1]
 let values = []
 
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout, escapeCodeTimeout: 0 })
@@ -38,19 +38,22 @@ readline.emitKeypressEvents(process.stdin)
 process.stdin.setRawMode(true)
 process.stdin.on('keypress', (ch, key) => {
   if (key && key.ctrl && key.name === 'c') {
-    process.stdout.write('\x1b[1;1H') // cursor 0,0
-    process.stdout.write('\x1b[2J') // clear screen
-    process.stdout.write('\x1b[?25h') // show cursor
-    process.stdin.unref()
-    clearTimeout(tid)
+    end()
   } else {
     gen = life(cols, rows)
   }
 })
 
 const tid = setInterval(() => {
-  gen.next().value.forEach(({ x, y, value }) => {
-    readline.cursorTo(process.stdout, x, y + 2)
+  const { done, value } = gen.next()
+  if (done) return end()
+
+  const { changes, generation } = value
+  process.stdout.write('\x1b[1;1H') // cursor 0,0
+  process.stdout.write(`Conway's Game of Life. Generation ${generation}`)
+
+  changes.forEach(({ x, y, value }) => {
+    readline.cursorTo(process.stdout, x, y + 1)
     process.stdout.write(value ? '\u2588' : ' ')
   })
 })
@@ -58,5 +61,11 @@ const tid = setInterval(() => {
 process.stdin.resume()
 process.stdout.write('\x1b[2J') // clear screen
 process.stdout.write('\x1b[?25l') // hide cursor
-process.stdout.write('\x1b[1;1H') // cursor 0,0
-process.stdout.write("Conway's Game of Life")
+
+function end() {
+  process.stdout.write('\x1b[1;1H') // cursor 0,0
+  process.stdout.write('\x1b[2J') // clear screen
+  process.stdout.write('\x1b[?25h') // show cursor
+  process.stdin.unref()
+  clearTimeout(tid)
+}

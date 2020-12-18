@@ -162,8 +162,11 @@ mocha.describe('toroidal-index', () => {
 
 mocha.describe('init', () => {
   mocha.it('initializes properly', () => {
-    const gen = life(5, 5)
-    assert.deepStrictEqual(gen.next().value.size, 25)
+    const { value, done } = life(5, 5).next()
+    assert.deepStrictEqual(done, false)
+    const { changes, generation } = value
+    assert.deepStrictEqual(changes.size, 25)
+    assert.deepStrictEqual(generation, 0)
   })
 })
 
@@ -252,10 +255,9 @@ mocha.describe('patterns', () => {
         const grid = [...states[0]]
         test(spec, () => {
           let i = 0
-          for (const changes of gen) {
-            if (++i > states.length * 5) break
+          for (const { changes } of gen) {
             changes.forEach((change) => (grid[change.index] = change.value))
-            assert.deepStrictEqual(grid, states[(i + 1) % states.length])
+            assert.deepStrictEqual(grid, states[(++i + 1) % states.length])
           }
         })
       })

@@ -13,7 +13,6 @@ const imageData = ctx.createImageData(width, height)
 const seed = parseInt(Math.random().toString().substr(2), 10)
 const random = createRandom(seed)
 const gen = life(width, height, () => Math.round(random()))
-let generation = 0
 let shouldContinue = true
 
 seedSpan.innerHTML = seed.toString()
@@ -25,8 +24,12 @@ document.addEventListener('keydown', (evt) => {
 })
 
 function tick() {
-  const changes = gen.next().value
-  generationSpan.innerHTML = (generation++).toString()
+  const { done, value } = gen.next()
+  if (done) return
+
+  const { generation, changes } = value
+
+  generationSpan.innerHTML = generation.toString()
   trackedSpan.innerHTML = changes.size.toString()
 
   for (const { x, y, value } of changes) {
