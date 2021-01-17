@@ -171,6 +171,156 @@ mocha.describe('init', () => {
 })
 
 const patternTest = {
+  spaceships: {
+    glider: {
+      rows: 5,
+      cols: 5,
+      history: 20,
+      // prettier-ignore
+      states: [
+        [
+          0,0,1,0,0,
+          1,0,1,0,0,
+          0,1,1,0,0,
+          0,0,0,0,0,
+          0,0,0,0,0
+        ],
+        [
+          0,1,0,0,0,
+          0,0,1,1,0,
+          0,1,1,0,0,
+          0,0,0,0,0,
+          0,0,0,0,0
+        ],
+        [
+          0,0,1,0,0,
+          0,0,0,1,0,
+          0,1,1,1,0,
+          0,0,0,0,0,
+          0,0,0,0,0
+        ],
+        [
+          0,0,0,0,0,
+          0,1,0,1,0,
+          0,0,1,1,0,
+          0,0,1,0,0,
+          0,0,0,0,0
+        ],
+        [
+          0,0,0,0,0,
+          0,0,0,1,0,
+          0,1,0,1,0,
+          0,0,1,1,0,
+          0,0,0,0,0
+        ],
+        [
+          0,0,0,0,0,
+          0,0,1,0,0,
+          0,0,0,1,1,
+          0,0,1,1,0,
+          0,0,0,0,0
+        ],
+        [
+          0,0,0,0,0,
+          0,0,0,1,0,
+          0,0,0,0,1,
+          0,0,1,1,1,
+          0,0,0,0,0
+        ],
+        [
+          0,0,0,0,0,
+          0,0,0,0,0,
+          0,0,1,0,1,
+          0,0,0,1,1,
+          0,0,0,1,0
+        ],
+        [
+          0,0,0,0,0,
+          0,0,0,0,0,
+          0,0,0,0,1,
+          0,0,1,0,1,
+          0,0,0,1,1
+        ],
+        [
+          0,0,0,0,0,
+          0,0,0,0,0,
+          0,0,0,1,0,
+          1,0,0,0,1,
+          0,0,0,1,1
+        ],
+        [
+          0,0,0,0,0,
+          0,0,0,0,0,
+          0,0,0,0,1,
+          1,0,0,0,0,
+          1,0,0,1,1
+        ],
+        [
+          0,0,0,0,1,
+          0,0,0,0,0,
+          0,0,0,0,0,
+          1,0,0,1,0,
+          1,0,0,0,1
+        ],
+        [
+          1,0,0,0,1,
+          0,0,0,0,0,
+          0,0,0,0,0,
+          1,0,0,0,0,
+          1,0,0,1,0
+        ],
+        [
+          1,0,0,0,1,
+          0,0,0,0,0,
+          0,0,0,0,0,
+          0,0,0,0,1,
+          1,1,0,0,0
+        ],
+        [
+          1,1,0,0,1,
+          0,0,0,0,0,
+          0,0,0,0,0,
+          1,0,0,0,0,
+          0,1,0,0,0
+        ],
+        [
+          1,1,0,0,0,
+          1,0,0,0,0,
+          0,0,0,0,0,
+          0,0,0,0,0,
+          0,1,0,0,1
+        ],
+        [
+          0,1,0,0,1,
+          1,1,0,0,0,
+          0,0,0,0,0,
+          0,0,0,0,0,
+          0,1,0,0,0
+        ],
+        [
+          0,1,1,0,0,
+          1,1,0,0,0,
+          0,0,0,0,0,
+          0,0,0,0,0,
+          1,0,0,0,0
+        ],
+        [
+          0,0,1,0,0,
+          1,1,1,0,0,
+          0,0,0,0,0,
+          0,0,0,0,0,
+          0,1,0,0,0
+        ],
+        [
+          1,0,1,0,0,
+          0,1,1,0,0,
+          0,1,0,0,0,
+          0,0,0,0,0,
+          0,0,0,0,0
+        ]
+      ],
+    },
+  },
   ocilators: {
     toad: {
       rows: 6,
@@ -249,15 +399,16 @@ const patternTest = {
 mocha.describe('patterns', () => {
   Object.entries(patternTest).forEach(([name, specs]) => {
     mocha.describe(name, () => {
-      Object.entries(specs).forEach(([spec, { states, cols, rows, only }]) => {
+      Object.entries(specs).forEach(([spec, { states, cols, rows, only, history }]) => {
         const test = only ? mocha.it.only : mocha.it
-        const gen = life(cols, rows, (index) => states[0][index])
+        const gen = life(cols, rows, (index) => states[0][index], history)
         const grid = [...states[0]]
         test(spec, () => {
           let i = 0
-          for (const { changes } of gen) {
+          for (const { changes, generation } of gen) {
+            const index = i++ % states.length
             changes.forEach((change) => (grid[change.index] = change.value))
-            assert.deepStrictEqual(grid, states[(++i + 1) % states.length])
+            assert.deepStrictEqual(grid, states[index], `generation: ${generation}; index: ${index}`)
           }
         })
       })
