@@ -1,32 +1,25 @@
-/**
- * Conway's game of life
- *
- * In an arbitrary grid, each tick should calculate the following for nodes that are alive and their immediete neighbors
- * => Any live cell with < 2 neighbours dies.
- * => Any live cell with {2, 3} neighbours lives.
- * => Any live cell with > 3 neighbours dies.
- * => Any dead cell with three live neighbours becomes live.
- * => If any cell wasn't modified last round, and none of it's neightbors change, it won't change this round.
- *
- * usage:
- *
- * const gen = life(cols, rows, () => Math.round(Math.random()))
- * // initial value will have all cells
- * gen.next().value.forEach(({ index, x, y, value }) => {
- *   print(x, y, value)
- * })
- *
- * const tid = setInterval(() => {
- *   const {done, value} = gen.next()
- *   if (done) clearInterval(tid)
- *   const {changes, generation} = value
- *   // changes is a Set, generation is an int
- *   changes.forEach(({ index, x, y, value }) => {
- *     print(x, y, value)
- *   })
- * }, 0)
- *
- */
+/* Conway's game of life
+
+In an arbitrary grid, each tick should calculate the following for nodes that are alive and their immediete neighbors
+=> Any live cell with < 2 neighbours dies.
+=> Any live cell with {2, 3} neighbours lives.
+=> Any live cell with > 3 neighbours dies.
+=> Any dead cell with three live neighbours becomes live.
+=> If any cell wasn't modified last round, and none of it's neightbors change, it won't change this round.
+
+usage:
+
+const seed = (i) => Math.round(Math.random())
+const gen = life(cols, rows, seed)
+const cancel = () => gen.return()
+
+for await (const {generation, changes} of gen}) {
+  for (const { index, x, y, value } of changes) {
+    print(x, y, value)
+  }
+}
+
+*/
 
 export const pointToIndex = (cols, rows, dx, dy) => {
   const xmod = dx % cols
