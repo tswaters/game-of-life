@@ -44,7 +44,7 @@ const chunkBitArray = (array) => {
 export const indexToPoint = (cols, rows, index) => [index % cols, Math.floor(index / cols)]
 
 /* global setImmediate, requestAnimationFrame */
-const next = (f) => (typeof requestAnimationFrame !== 'undefined' ? requestAnimationFrame(f) : setImmediate(f))
+const next = typeof requestAnimationFrame !== 'undefined' ? requestAnimationFrame : setImmediate
 
 export default async function* (cols, rows, cb = () => Math.round(Math.random()), historyToKeep = 6) {
   const cells = Array.from({ length: cols * rows }).map((_, index) => ({ index }))
@@ -109,6 +109,6 @@ export default async function* (cols, rows, cb = () => Math.round(Math.random())
     }
 
     yield { generation, changes }
-    await new Promise((resolve) => next(resolve))
+    await new Promise((resolve) => next(() => resolve()))
   }
 }
