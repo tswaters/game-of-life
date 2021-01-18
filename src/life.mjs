@@ -29,29 +29,22 @@ export const pointToIndex = (cols, rows, dx, dy) => {
   return x + y * cols
 }
 
-const chunkBitArray = (array) => {
-  let newArray = []
-  for (let i = 0; i < array.length; i += 64) {
-    const bin = array
-      .slice(i, i + 64)
-      .map((x) => x.value)
-      .join('')
-    newArray.push(BigInt(`0b${bin}`))
-  }
-  return newArray
-}
-
 export const indexToPoint = (cols, rows, index) => [index % cols, Math.floor(index / cols)]
 
 /* global setImmediate, requestAnimationFrame */
 const next = typeof requestAnimationFrame !== 'undefined' ? requestAnimationFrame : setImmediate
 
 export default async function* (cols, rows, cb = () => Math.round(Math.random()), historyToKeep = 6) {
+  const history = new Array(historyToKeep)
+
   const cells = Array.from({ length: cols * rows }).map((_, index) => ({ index }))
+
   let inspections = new Set([
+    // this map requires mutation and returning the original cell, for the set additions to work properly.
     ...cells.map((cell, index, array) => {
-      const x = (cell.x = index % cols)
-      const y = (cell.y = Math.floor(index / cols))
+      const [x, y] = indexToPoint(cols, rows, index)
+      cell.x = x
+      cell.y = y
       cell.value = cb(index)
       cell.neighbours = [
         pointToIndex(cols, rows, x - 1, y - 1),
@@ -62,13 +55,14 @@ export default async function* (cols, rows, cb = () => Math.round(Math.random())
         pointToIndex(cols, rows, x + 1, y - 1),
         pointToIndex(cols, rows, x + 1, y),
         pointToIndex(cols, rows, x + 1, y + 1),
+
+        // same idea, `array[index]` points at the original reference
       ].map((neightbourIndex) => array[neightbourIndex])
       return cell
     }),
   ])
 
   let generation = 0
-  const history = [chunkBitArray(cells)]
 
   yield { changes: inspections, generation }
 
@@ -97,16 +91,30 @@ export default async function* (cols, rows, cb = () => Math.round(Math.random())
       delete cell.newValue
     })
 
-    const newHistory = chunkBitArray(cells)
+    // my very naive approach to determining if the pattern is repeating: if same generation shows up again, it's repeating.
+    // don't really want to compare each value of the entire array * number of histories to keep, with each iteration of the generator
+    // so, the bit array is chunked into a BigInt (each element taking 64 bits), and those are compared.
+    // they are still compared, (i.e., I'm sure there's a better way to do this), but this results in 64x less array iterations.
+
+    let newHistory = []
+
+    for (let i = 0; i < cells.length; i += 64) {
+      newHistory.push(
+        BigInt(
+          `0b${cells
+            .slice(i, i + 64)
+            .map((x) => x.value)
+            .join('')}`
+        )
+      )
+    }
 
     if (history.some((h) => h.every((x, i) => newHistory[i] === x))) {
       break // we're done here.
     }
 
     history.unshift(newHistory)
-    if (history.length > historyToKeep) {
-      history.pop()
-    }
+    if (history.length > historyToKeep) history.pop()
 
     yield { generation, changes }
     await new Promise((resolve) => next(() => resolve()))
