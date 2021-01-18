@@ -38,14 +38,14 @@ process.stdout.write('\x1b[2J') // clear screen
 process.stdout.write('\x1b[?25l') // hide cursor
 
 for await (const { changes, generation } of gen) {
-  process.stdout.write('\x1b[1;1H') // cursor 0,0
+  process.stdout.write('\x1b[0;0H') // cursor 0,0
   process.stdout.write(`Conway's Game of Life. Generation ${generation}`)
   changes.forEach(({ x, y, value }) => {
-    readline.cursorTo(process.stdout, x, y + 1)
+    process.stdout.write(`\x1b[${y + 2};${x + 1}H`) // cursor x,y+1
     process.stdout.write(value ? '\u2588' : ' ')
   })
 }
 
-process.stdout.write('\x1b[1;1H') // cursor 0,0
+process.stdout.write('\x1b[0;0H') // cursor 0,0
 process.stdout.write('\x1b[2J') // clear screen
 process.stdout.write('\x1b[?25h') // show cursor
