@@ -161,8 +161,8 @@ mocha.describe('toroidal-index', () => {
 })
 
 mocha.describe('init', () => {
-  mocha.it('initializes properly', () => {
-    const { value, done } = life(5, 5).next()
+  mocha.it('initializes properly', async () => {
+    const { value, done } = await life(5, 5).next()
     assert.deepStrictEqual(done, false)
     const { changes, generation } = value
     assert.deepStrictEqual(changes.size, 25)
@@ -403,9 +403,9 @@ mocha.describe('patterns', () => {
         const test = only ? mocha.it.only : mocha.it
         const gen = life(cols, rows, (index) => states[0][index], history)
         const grid = [...states[0]]
-        test(spec, () => {
+        test(spec, async () => {
           let i = 0
-          for (const { changes, generation } of gen) {
+          for await (const { changes, generation } of gen) {
             const index = i++ % states.length
             changes.forEach((change) => (grid[change.index] = change.value))
             assert.deepStrictEqual(grid, states[index], `generation: ${generation}; index: ${index}`)

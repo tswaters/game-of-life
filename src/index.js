@@ -1,3 +1,5 @@
+/* eslint-env browser */
+
 import life from './life.mjs'
 
 const createRandom = (s) => () => ((2 ** 31 - 1) & (s = Math.imul(48271, s))) / 2 ** 31
@@ -13,34 +15,28 @@ const imageData = ctx.createImageData(width, height)
 const seed = parseInt(Math.random().toString().substr(2), 10)
 const random = createRandom(seed)
 const gen = life(width, height, () => Math.round(random()))
-let shouldContinue = true
 
 seedSpan.innerHTML = seed.toString()
 
-window.requestAnimationFrame(tick)
-
 document.addEventListener('keydown', (evt) => {
-  if (evt.key === 'Escape') shouldContinue = false
+  if (evt.key === 'Escape') gen.return()
 })
 
-function tick() {
-  const { done, value } = gen.next()
-  if (done) return
+// browsers don't support top-level await yet
+;(async () => {
+  for await (const { generation, changes } of gen) {
+    generationSpan.innerHTML = generation.toString()
+    trackedSpan.innerHTML = changes.size.toString()
 
-  const { generation, changes } = value
+    for (const { x, y, value } of changes) {
+      const newColor = value * 0xff
+      let i = y * (imageData.width * 4) + x * 4
+      imageData.data[i] = newColor
+      imageData.data[i + 1] = newColor
+      imageData.data[i + 2] = newColor
+      imageData.data[i + 3] = 0xff
+    }
 
-  generationSpan.innerHTML = generation.toString()
-  trackedSpan.innerHTML = changes.size.toString()
-
-  for (const { x, y, value } of changes) {
-    const newColor = value * 0xff
-    let i = y * (imageData.width * 4) + x * 4
-    imageData.data[i] = newColor
-    imageData.data[i + 1] = newColor
-    imageData.data[i + 2] = newColor
-    imageData.data[i + 3] = 0xff
+    ctx.putImageData(imageData, 0, 0)
   }
-
-  ctx.putImageData(imageData, 0, 0)
-  if (shouldContinue) window.requestAnimationFrame(tick)
-}
+})().catch(console.error)

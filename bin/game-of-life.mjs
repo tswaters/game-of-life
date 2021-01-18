@@ -33,39 +33,19 @@ const [cols, rows] = values
 
 let gen = life(cols, rows)
 
-readline.emitKeypressEvents(process.stdin)
+process.on('SIGINT', () => gen.return())
+process.stdout.write('\x1b[2J') // clear screen
+process.stdout.write('\x1b[?25l') // hide cursor
 
-process.stdin.setRawMode(true)
-process.stdin.on('keypress', (ch, key) => {
-  if (key && key.ctrl && key.name === 'c') {
-    end()
-  } else {
-    gen = life(cols, rows)
-  }
-})
-
-const tid = setInterval(() => {
-  const { done, value } = gen.next()
-  if (done) return end()
-
-  const { changes, generation } = value
+for await (const { changes, generation } of gen) {
   process.stdout.write('\x1b[1;1H') // cursor 0,0
   process.stdout.write(`Conway's Game of Life. Generation ${generation}`)
-
   changes.forEach(({ x, y, value }) => {
     readline.cursorTo(process.stdout, x, y + 1)
     process.stdout.write(value ? '\u2588' : ' ')
   })
-})
-
-process.stdin.resume()
-process.stdout.write('\x1b[2J') // clear screen
-process.stdout.write('\x1b[?25l') // hide cursor
-
-function end() {
-  process.stdout.write('\x1b[1;1H') // cursor 0,0
-  process.stdout.write('\x1b[2J') // clear screen
-  process.stdout.write('\x1b[?25h') // show cursor
-  process.stdin.unref()
-  clearTimeout(tid)
 }
+
+process.stdout.write('\x1b[1;1H') // cursor 0,0
+process.stdout.write('\x1b[2J') // clear screen
+process.stdout.write('\x1b[?25h') // show cursor

@@ -9,7 +9,7 @@
   "scripts": {
     "debug": "node --inspect-brk ./bin/game-of-life.mjs",
     "format": "prettier --write .",
-    "lint": "eslint .",
+    "lint": "eslint --ext mjs --ext js .",
     "prebuild": "rimraf dist",
     "start": "serve src",
     "start-cli": "node ./bin/game-of-life.mjs",
@@ -52,12 +52,6 @@
       "no-unused-vars": "warn"
     },
     "overrides": [
-      {
-        "files": "src/*.*",
-        "env": {
-          "browser": true
-        }
-      },
       {
         "files": "bin/*.mjs",
         "env": {
