@@ -12,7 +12,7 @@ let inputs = ['columns', 'rows']
 let defaults = [process.stdout.columns, process.stdout.rows - 1]
 let values = []
 
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout, escapeCodeTimeout: 0 })
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
 
 const prompt = (i) => process.stdout.write(`Enter input for ${inputs[i]} [${defaults[i]}]:`)
 
